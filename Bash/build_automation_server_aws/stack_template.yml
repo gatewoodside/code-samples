@@ -1,0 +1,120 @@
+AWSTemplateFormatVersion: 2010-09-09
+Metadata:
+  'AWS::CloudFormation::Designer':
+    c32b80d8-5a80-4369-948e-9f01e3907bed:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 710
+        'y': 220
+      z: 0
+      embeds: []
+      isassociatedwith:
+        - 602f04fb-9408-4b4d-9cd1-4ee3acdfa829
+    602f04fb-9408-4b4d-9cd1-4ee3acdfa829:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 570
+        'y': 220
+      z: 0
+      embeds: []
+Parameters:
+  KeyName:
+    Type: String
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the web server
+    Default: %NONPROD_KEYNAME%
+  EnvironmentType:
+    Type: String
+    Default: NONPROD
+    AllowedValues:
+      - NONPROD
+      - PROD
+    Description: Environment Type
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+Mappings:
+  EnvironmentMap:
+    NONPROD:
+      IAMRole: %NONPROD_IAM_ROLE%
+      IamInstanceProfile: %NONPROD_IAM_INSTANCE_PROFILE%
+      KeyName: %NONPROD_KEYNAME%
+      SubnetId: %NONPROD_SUBNET_ID%
+      VpcId: %NONPROD_VPC_ID%
+      Monitoring: %NONPROD_MONITORING%
+      StartStopEC2: %NONPROD_START_STOP_EC2%
+      Service: %NONPROD_SERVICE%
+      Name: %NONPROD_NAME%
+    PROD:
+      IAMRole: %PROD_IAM_ROLE%
+      IamInstanceProfile: %PROD_IAM_INSTANCE_PROFILE%
+      KeyName: %PROD_KEYNAME%
+      SubnetId: %PROD_SUBNET_ID%
+      VpcId: %PROD_VPC_ID%
+      Monitoring: %PROD_MONITORING%
+      StartStopEC2: %PROD_START_STOP_EC2%
+      Service: %PROD_SERVICE%
+      Name: %PROD_NAME%
+Resources:
+  LinuxEC2:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      IamInstanceProfile: !FindInMap
+        - EnvironmentMap
+        - !Ref EnvironmentType
+        - IamInstanceProfile
+      InstanceType: %COMMON_INSTNCE_TYPE%
+      KeyName: !FindInMap
+        - EnvironmentMap
+        - !Ref EnvironmentType
+        - KeyName
+      ImageId: !Ref LatestAmiId
+      SubnetId: !FindInMap
+        - EnvironmentMap
+        - !Ref EnvironmentType
+        - SubnetId
+      SecurityGroupIds:
+        - !Ref AutomationSecurityGroup
+      Tags:
+        - Key: Service
+          Value: !FindInMap
+            - EnvironmentMap
+            - !Ref EnvironmentType
+            - Service
+        - Key: Name
+          Value: !FindInMap
+            - EnvironmentMap
+            - !Ref EnvironmentType
+            - Name
+        - Key: scheduler-ec2-startstop
+          Value: !FindInMap
+            - EnvironmentMap
+            - !Ref EnvironmentType
+            - StartStopEC2
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: c32b80d8-5a80-4369-948e-9f01e3907bed
+  AutomationSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      VpcId: !FindInMap
+        - EnvironmentMap
+        - !Ref EnvironmentType
+        - VpcId
+      GroupDescription: Automation Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 10.0.0.0/8
+      SecurityGroupEgress:
+        - IpProtocol: '-1'
+          FromPort: '-1'
+          ToPort: '-1'
+          CidrIp: 0.0.0.0/0
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 602f04fb-9408-4b4d-9cd1-4ee3acdfa829
