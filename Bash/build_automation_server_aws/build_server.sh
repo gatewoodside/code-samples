@@ -2,8 +2,16 @@
 #---------------------------------------------------------------------------------------------------------------
 # Mikael Sikora, 2020-02-10
 #---------------------------------------------------------------------------------------------------------------
+# syntax:  ./build_server.sh <ENV_NAME> <STACK_TEMPLATE> <SERVER_CONF>
+# Example: ./build_server.sh nonprod stack_template.yml automation_server.conf
 #---------------------------------------------------------------------------------------------------------------
 # Set variables
+# -------------
+# $CI_JOB_ID:     Gitlab CI Job ID
+# LAST_NAME:      Last name of the GitLab user name
+# ENV_NAME:       Environment name
+# STACK_TEMPLATE: stack_template.yml
+# SERVER_CONF:    automation_server.conf
 #---------------------------------------------------------------------------------------------------------------
 STACK_NAME=$CI_JOB_ID
 LAST_NAME=`echo $GITLAB_USER_NAME|awk -F"," '{print $1}'`
@@ -11,7 +19,7 @@ ENV_NAME="${1}"
 STACK_TEMPLATE="${2}"
 SERVER_CONF="${3}"
 #---------------------------------------------------------------------------------------------------------------
-# Replace variables stack_template.yml with values in automation_server.conf file
+# Replace variables in stack_template.yml with values from automation_server.conf file
 #---------------------------------------------------------------------------------------------------------------
 sed -i.bak 's/%ENVIRONMENT_NAME%/'$ENV_NAME'/g' $STACK_TEMPLATE && rm $STACK_TEMPLATE.bak
 for a in `cat $SERVER_CONF`;do

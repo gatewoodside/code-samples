@@ -24,7 +24,7 @@ nonprod-build_server.sh-01
 ## Scripts
 ### build_server.sh
 #### Purpose
-Creates a Automation Server Linux EC2 instance from latest Amazon Linux 2 AMI.  
+Creates an Automation Server Linux EC2 instance from latest Amazon Linux 2 AMI.  
 #### Code Workflow
 <pre>
 1) Build a CloudFormation template, replacing variables in stack_template.yml with  values from automation_server.conf.
